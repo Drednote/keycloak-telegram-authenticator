@@ -1,11 +1,14 @@
 plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.0.0'
+    id 'java-library'
+    id 'maven-publish'
+    id 'jacoco'
+    id "com.adarshr.test-logger" version "3.2.0"
+    id 'org.springframework.boot' version '3.1.1'
     id 'io.spring.dependency-management' version '1.1.0'
 }
 
 group = 'com.github.drednote'
-version = '0.0.1-SNAPSHOT'
+version = ''
 sourceCompatibility = '17'
 
 configurations {
@@ -45,25 +48,64 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2021.0.4"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2022.0.3"
     }
     resolutionStrategy {
-        cacheDynamicVersionsFor 50, 'minutes'
+        cacheDynamicVersionsFor 5, 'minutes'
         cacheChangingModulesFor 0, 'minutes'
+    }
+}
+
+tasks.register('sourceJar', Jar) {
+    from sourceSets.main.allJava
+}
+
+// todo delete if not needed
+publishing {
+    repositories {
+        maven {
+            url System.getProperty("NEXUS_UPLOAD_REPO") ?: NEXUS_UPLOAD_REPO
+            allowInsecureProtocol true
+            credentials {
+                username System.getProperty("NEXUS_USER") ?: NEXUS_USER
+                password System.getProperty("NEXUS_PASSWORD") ?: NEXUS_PASSWORD
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            groupId group
+            artifactId archivesBaseName
+            version System.getProperty("generatedVersion") ?: "master-SNAPSHOT"
+
+            from components.java
+            artifact sourceJar {
+                classifier "sources"
+            }
+        }
     }
 }
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+
+    jacocoTestReport {
+        dependsOn test
+        reports {
+            xml.enabled false
+            csv.enabled false
+            html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
+        }
+    }
 }

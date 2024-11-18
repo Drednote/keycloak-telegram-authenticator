@@ -1,4 +1,4 @@
-image: gradle:jdk17
+image: gradle:8.5.0-jdk21
 
 stages:
   - build
@@ -13,4 +13,4 @@ before_script:
 include:
   - project: 'mr_drednote/gitlab-ci/v1'
     file:
-      - 'stages/build.yml'
+      - 'common/build.yml'

@@ -1,15 +1,20 @@
 plugins {
-    id 'java-library'
+    id 'java'
     id 'maven-publish'
     id 'jacoco'
     id "com.adarshr.test-logger" version "3.2.0"
-    id 'org.springframework.boot' version '3.1.1'
+    id 'org.springframework.boot' version '3.3.3'
     id 'io.spring.dependency-management' version '1.1.0'
 }
 
-group = 'com.github.drednote'
+group = 'io.github.drednote'
 version = ''
-sourceCompatibility = '17'
+
+java {
+    sourceCompatibility = '21'
+    targetCompatibility = '21'
+    withSourcesJar()
+}
 
 configurations {
     compileOnly {
@@ -18,10 +23,10 @@ configurations {
 }
 
 ext {
-    nexusRepo = System.getProperty("NEXUS_REPO") ?: NEXUS_REPO
-    nexusRepoSnap = System.getProperty("NEXUS_REPO_SNAPSHOTS") ?: NEXUS_REPO_SNAPSHOTS
-    nexusUser = System.getProperty("NEXUS_USER") ?: NEXUS_USER
-    nexusPassword = System.getProperty("NEXUS_PASSWORD") ?: NEXUS_PASSWORD
+    nexusRepo = System.getenv("NEXUS_REPO") ?: System.getProperty("NEXUS_REPO") ?: NEXUS_REPO
+    nexusRepoSnap = System.getenv("NEXUS_REPO_SNAPSHOTS") ?: System.getProperty("NEXUS_REPO_SNAPSHOTS") ?: NEXUS_REPO_SNAPSHOTS
+    nexusUser = System.getenv("NEXUS_USER") ?: System.getProperty("NEXUS_USER") ?: NEXUS_USER
+    nexusPassword = System.getenv("NEXUS_PASSWORD") ?: System.getProperty("NEXUS_PASSWORD") ?: NEXUS_PASSWORD
 }
 
 repositories {
@@ -58,7 +63,7 @@ dependencies {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2022.0.3"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.3"
     }
     resolutionStrategy {
         cacheDynamicVersionsFor 5, 'minutes'
@@ -83,15 +88,12 @@ publishing {
         }
     }
     publications {
-        mavenJava(MavenPublication) {
+        create('mavenJava', MavenPublication) {
             groupId group
             artifactId archivesBaseName
             version System.getProperty("generatedVersion") ?: "master-SNAPSHOT"
 
             from components.java
-            artifact sourceJar {
-                classifier "sources"
-            }
         }
     }
 }
@@ -103,8 +105,8 @@ test {
     jacocoTestReport {
         dependsOn test
         reports {
-            xml.enabled false
-            csv.enabled false
+            xml.required = false
+            csv.required = false
             html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
         }
     }

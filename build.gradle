@@ -20,32 +20,11 @@ configurations {
 }
 
 ext {
-    nexusRepo = System.getenv("NEXUS_REPO") ?: System.getProperty("NEXUS_REPO") ?: NEXUS_REPO
-    nexusRepoSnap = System.getenv("NEXUS_REPO_SNAPSHOTS") ?: System.getProperty("NEXUS_REPO_SNAPSHOTS") ?: NEXUS_REPO_SNAPSHOTS
-    nexusUser = System.getenv("NEXUS_USER") ?: System.getProperty("NEXUS_USER") ?: NEXUS_USER
-    nexusPassword = System.getenv("NEXUS_PASSWORD") ?: System.getProperty("NEXUS_PASSWORD") ?: NEXUS_PASSWORD
+
 }
 
 repositories {
     mavenCentral()
-    maven {
-        name "nexus"
-        url nexusRepo
-        allowInsecureProtocol true
-        credentials {
-            username nexusUser
-            password nexusPassword
-        }
-    }
-    maven {
-        name "nexus-snap"
-        url nexusRepoSnap
-        allowInsecureProtocol true
-        credentials {
-            username nexusUser
-            password nexusPassword
-        }
-    }
 }
 
 dependencies {

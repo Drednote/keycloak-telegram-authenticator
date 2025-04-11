@@ -1,0 +1,12 @@
+services:
+  keycloak:
+    image: keycloak/keycloak:26.0
+    environment: {KC_BOOTSTRAP_ADMIN_USERNAME: admin, KC_BOOTSTRAP_ADMIN_PASSWORD: admin}
+    container_name: keycloak
+    restart: unless-stopped
+    volumes: ['./build/libs/:/opt/keycloak/providers/']
+    ports: ['8090:8080']
+    command: start-dev --features=declarative-ui,token-exchange
+    deploy:
+      resources:
+        limits: {memory: 512m, cpus: '2'}

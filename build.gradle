@@ -1,10 +1,7 @@
 plugins {
     id 'java'
-    id 'maven-publish'
     id 'jacoco'
     id "com.adarshr.test-logger" version "3.2.0"
-    id 'org.springframework.boot' version '3.3.3'
-    id 'io.spring.dependency-management' version '1.1.0'
 }
 
 group = 'io.github.drednote'
@@ -52,50 +49,21 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly "org.keycloak:keycloak-services:26.0.0"
+    implementation "com.google.guava:guava:33.4.6-jre"
+    implementation "org.apache.httpcomponents.client5:httpclient5:5.4.3"
 
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:4.0.0")
 
-    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
+    compileOnly "org.projectlombok:lombok:1.18.34"
+    annotationProcessor "org.projectlombok:lombok:1.18.34"
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.3"
-    }
-    resolutionStrategy {
-        cacheDynamicVersionsFor 5, 'minutes'
-        cacheChangingModulesFor 0, 'minutes'
-    }
+    testCompileOnly "org.projectlombok:lombok:1.18.34"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.34"
 }
 
 tasks.register('sourceJar', Jar) {
     from sourceSets.main.allJava
-}
-
-// todo delete if not needed
-publishing {
-    repositories {
-        maven {
-            url System.getProperty("NEXUS_UPLOAD_REPO") ?: NEXUS_UPLOAD_REPO
-            allowInsecureProtocol true
-            credentials {
-                username System.getProperty("NEXUS_USER") ?: NEXUS_USER
-                password System.getProperty("NEXUS_PASSWORD") ?: NEXUS_PASSWORD
-            }
-        }
-    }
-    publications {
-        create('mavenJava', MavenPublication) {
-            groupId group
-            artifactId archivesBaseName
-            version System.getProperty("generatedVersion") ?: "master-SNAPSHOT"
-
-            from components.java
-        }
-    }
 }
 
 test {
@@ -110,4 +78,17 @@ test {
             html.outputLocation = layout.buildDirectory.dir('reports/jacoco/test/html')
         }
     }
+}
+
+tasks.register('fatJar', Jar) {
+    archiveBaseName = 'keycloak-telegram-authenticator'
+    version = ''
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+jar {
+    dependsOn fatJar
+    enabled false
 }
